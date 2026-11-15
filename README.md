@@ -11,19 +11,27 @@ No npm, no Playwright, no MCP server. Python 3 and Chromium are the only require
 
 ## Install
 
+Clone the repository, then register the checkout as a marketplace (this CLI version accepts local paths, `owner/repo`, or `https://` URLs — not `ssh://`):
+
+```bash
+git clone aigit@git.home:chromium-cdp-plugin.git
+```
+
 From Claude Code:
 
 ```
-/plugin marketplace add ssh://aigit@git.home/chromium-cdp-plugin.git
+/plugin marketplace add ./chromium-cdp-plugin
 /plugin install chromium-cdp@aigit-plugins
 ```
 
 Or from a shell:
 
 ```bash
-claude plugin marketplace add ssh://aigit@git.home/chromium-cdp-plugin.git
+claude plugin marketplace add ./chromium-cdp-plugin
 claude plugin install chromium-cdp@aigit-plugins
 ```
+
+If `git.home` later gets an HTTPS front end, its URL can be passed to `marketplace add` directly.
 
 For local development, load the checkout directly:
 
