@@ -50,3 +50,15 @@ PY
 python3 browserctl.py shot "$SHOT"
 [ -s "$SHOT" ] || { echo "ERROR: screenshot missing: $SHOT" >&2; exit 1; }
 echo "screenshot: $SHOT"
+
+# Tabs: newtab switches to the new tab; closetab drops it and falls back.
+BEFORE="$(python3 browserctl.py eval 'document.title')"
+python3 browserctl.py newtab "file://$UNIT/inspect-test.html" >/dev/null
+TABS="$(python3 browserctl.py tabs | grep -c '^[ *] \[')" || true
+[ "$TABS" = "2" ] || { echo "ERROR: expected 2 tabs after newtab, got $TABS" >&2; exit 1; }
+python3 browserctl.py closetab >/dev/null
+TABS="$(python3 browserctl.py tabs | grep -c '^[ *] \[')" || true
+[ "$TABS" = "1" ] || { echo "ERROR: expected 1 tab after closetab, got $TABS" >&2; exit 1; }
+[ "$(python3 browserctl.py eval 'document.title')" = "$BEFORE" ] \
+  || { echo 'ERROR: closetab did not fall back to the original tab' >&2; exit 1; }
+echo "OK: tabs — newtab switched, closetab restored '$BEFORE'"

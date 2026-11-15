@@ -48,6 +48,16 @@ python3 browserctl.py console 2
 python3 browserctl.py eval 'document.title'
 ```
 
+Tabs:
+
+```bash
+python3 browserctl.py tabs                        # list tabs, * = active
+python3 browserctl.py tab 上海                     # switch by title, index, or id prefix
+python3 browserctl.py newtab https://example.com  # open and switch
+python3 browserctl.py --tab 1 state               # one command against another tab
+python3 browserctl.py closetab                    # close the active tab
+```
+
 ## Watching from another machine
 
 The browser is headless. Tunnel the debugging port and point a local Chrome at it:
