@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "aigit-plugins",
+  "description": "Claude Code plugins from aigit@git.home",
+  "owner": {
+    "name": "aigit"
+  },
+  "plugins": [
+    {
+      "name": "chromium-cdp",
+      "description": "Drive a headless Chromium over the Chrome DevTools Protocol: launch it, navigate, click, type, screenshot, read console output, and run JavaScript.",
+      "author": {
+        "name": "aigit"
+      },
+      "source": "./"
+    }
+  ]
+}

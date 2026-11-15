@@ -1,0 +1,8 @@
+{
+  "name": "chromium-cdp",
+  "description": "Drive a headless Chromium over the Chrome DevTools Protocol: launch it, navigate, click, type, screenshot, read console output, and run JavaScript. Zero dependencies, Python standard library only.",
+  "version": "0.1.0",
+  "author": {
+    "name": "aigit"
+  }
+}

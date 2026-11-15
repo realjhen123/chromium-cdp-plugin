@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>CDP Test Page</title>
+<style>
+  body{font-family:system-ui,sans-serif;margin:0;padding:24px;background:#0f1115;color:#e6e6e6}
+  h1{font-size:20px;margin:0 0 12px}
+  .row{display:flex;gap:12px;align-items:center;margin:12px 0;flex-wrap:wrap}
+  button{font-size:16px;padding:10px 18px;border-radius:8px;border:0;background:#3b82f6;color:#fff;cursor:pointer}
+  button:active{transform:translateY(1px)}
+  input{font-size:16px;padding:9px 12px;border-radius:8px;border:1px solid #333;background:#1a1d24;color:#fff;width:260px}
+  #count{font-size:34px;font-weight:700;color:#22d3ee;min-width:80px;display:inline-block}
+  #clockwrap{background:#1a1d24;border-radius:10px;display:inline-block;margin-top:16px;padding:28px 40px;min-width:280px;text-align:center}
+  #clock{font-family:ui-monospace,monospace;font-size:56px;font-weight:700;color:#22d3ee;letter-spacing:2px;font-variant-numeric:tabular-nums}
+  #date{color:#8b93a1;font-size:14px;margin-top:8px}
+  .hint{color:#8b93a1;font-size:13px}
+  #log{font-family:ui-monospace,monospace;font-size:13px;color:#a7f3d0;white-space:pre-wrap;margin-top:12px}
+</style>
+<h1>CDP / chrome://inspect test page</h1>
+<div class="hint">In DevTools press Ctrl+Shift+M (Device Mode) to get a live screencast you can click on.</div>
+
+<div class="row">
+  <button id="btn">Click me +1</button>
+  <span id="count">0</span>
+</div>
+<div class="row">
+  <input id="text" placeholder="type here, test input...">
+  <button id="echo">Echo</button>
+</div>
+<div id="log"></div>
+
+<div id="clockwrap">
+  <div id="clock">--:--:--</div>
+  <div id="date"></div>
+</div>
+
+<script>
+  let n = 0;
+  const count = document.getElementById('count');
+  const log = document.getElementById('log');
+  document.getElementById('btn').onclick = () => {
+    count.textContent = ++n;
+    console.log('button clicked, n =', n);
+  };
+  document.getElementById('echo').onclick = () => {
+    const v = document.getElementById('text').value;
+    log.textContent = 'echo: ' + v;
+    console.log('echo:', v);
+  };
+
+  const clockEl = document.getElementById('clock');
+  const dateEl = document.getElementById('date');
+  function tick() {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString([], {hour12: false});
+    dateEl.textContent = now.toLocaleDateString([],
+      {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'});
+  }
+  tick();
+  setInterval(tick, 1000);
+  console.log('test page loaded at', new Date().toISOString());
+</script>
+</html>
