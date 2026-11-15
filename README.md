@@ -14,14 +14,14 @@ No npm, no Playwright, no MCP server. Python 3 and Chromium are the only require
 This repository is itself a Claude Code marketplace. From Claude Code:
 
 ```
-/plugin marketplace add <github-owner>/chromium-cdp-plugin
+/plugin marketplace add realjhen123/chromium-cdp-plugin
 /plugin install chromium-cdp@aigit-plugins
 ```
 
 Or from a shell:
 
 ```bash
-claude plugin marketplace add <github-owner>/chromium-cdp-plugin
+claude plugin marketplace add realjhen123/chromium-cdp-plugin
 claude plugin install chromium-cdp@aigit-plugins
 ```
 
