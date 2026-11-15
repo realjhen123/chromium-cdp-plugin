@@ -11,33 +11,21 @@ No npm, no Playwright, no MCP server. Python 3 and Chromium are the only require
 
 ## Install
 
-Clone the repository, then register the checkout as a marketplace (this CLI version accepts local paths, `owner/repo`, or `https://` URLs — not `ssh://`):
-
-```bash
-git clone aigit@git.home:chromium-cdp-plugin.git
-```
-
-From Claude Code:
+This repository is itself a Claude Code marketplace. From Claude Code:
 
 ```
-/plugin marketplace add ./chromium-cdp-plugin
+/plugin marketplace add <github-owner>/chromium-cdp-plugin
 /plugin install chromium-cdp@aigit-plugins
 ```
 
 Or from a shell:
 
 ```bash
-claude plugin marketplace add ./chromium-cdp-plugin
+claude plugin marketplace add <github-owner>/chromium-cdp-plugin
 claude plugin install chromium-cdp@aigit-plugins
 ```
 
-If `git.home` later gets an HTTPS front end, its URL can be passed to `marketplace add` directly.
-
-For local development, load the checkout directly:
-
-```bash
-claude --plugin-dir /path/to/chromium-cdp-plugin
-```
+Replace `<github-owner>` with the GitHub account that hosts this repository. The marketplace is named `aigit-plugins`; the plugin is named `chromium-cdp`.
 
 ## Use
 
@@ -46,13 +34,13 @@ The skill loads automatically when a request matches, or invoke it explicitly wi
 Smoke-test the whole chain (starts a browser, clicks, types, echoes, asserts, screenshots):
 
 ```bash
-"<plugin-root>/skills/run-chromium-cdp/smoke.sh"
+"<skill-dir>/smoke.sh"
 ```
 
 Manual control:
 
 ```bash
-cd "<plugin-root>/skills/run-chromium-cdp/driver"
+cd "<skill-dir>/driver"
 python3 browserctl.py state
 python3 browserctl.py goto https://example.com
 python3 browserctl.py click '#btn'
