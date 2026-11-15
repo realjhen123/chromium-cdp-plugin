@@ -25,8 +25,6 @@ claude plugin marketplace add realjhen123/chromium-cdp-plugin
 claude plugin install chromium-cdp@aigit-plugins
 ```
 
-Replace `<github-owner>` with the GitHub account that hosts this repository. The marketplace is named `aigit-plugins`; the plugin is named `chromium-cdp`.
-
 ## Use
 
 The skill loads automatically when a request matches, or invoke it explicitly with `/chromium-cdp:run-chromium-cdp`.
