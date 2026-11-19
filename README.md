@@ -58,6 +58,8 @@ python3 browserctl.py --tab 1 state               # one command against another 
 python3 browserctl.py closetab                    # close the active tab
 ```
 
+Commands without `--tab` drive `$CDP_TAB` if set, else the tab saved by `tab`, else the first page tab. `tabs` stars whichever one a command would drive.
+
 ## Watching from another machine
 
 The browser is headless. Tunnel the debugging port and point a local Chrome at it:

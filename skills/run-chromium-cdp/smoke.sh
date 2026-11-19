@@ -8,6 +8,7 @@ SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UNIT="${CHROMIUM_CDP_DIR:-$SKILL_DIR/driver}"
 [ -f "$UNIT/browserctl.py" ] || { echo "ERROR: browserctl.py not found in $UNIT" >&2; exit 1; }
 cd "$UNIT"
+unset CDP_TAB  # the harness asserts the tab it drives, not the caller's
 
 URL="${1:-file://$UNIT/inspect-test.html}"
 SHOT="${2:-$UNIT/smoke-shot.png}"
@@ -53,9 +54,24 @@ echo "screenshot: $SHOT"
 
 # Tabs: newtab switches to the new tab; closetab drops it and falls back.
 BEFORE="$(python3 browserctl.py eval 'document.title')"
+ORIG_ID="$(python3 browserctl.py tabs | sed -n 's/^\* \[[0-9]*\] \([0-9A-F]*\).*/\1/p')"
+[ -n "$ORIG_ID" ] || { echo 'ERROR: no tab starred before newtab' >&2; exit 1; }
 python3 browserctl.py newtab "file://$UNIT/inspect-test.html" >/dev/null
 TABS="$(python3 browserctl.py tabs | grep -c '^[ *] \[')" || true
 [ "$TABS" = "2" ] || { echo "ERROR: expected 2 tabs after newtab, got $TABS" >&2; exit 1; }
+
+# $CDP_TAB outranks the saved selection, and `tabs` stars what commands drive.
+ENV_TITLE="$(CDP_TAB="$ORIG_ID" python3 browserctl.py eval 'document.title')"
+[ "$ENV_TITLE" = "$BEFORE" ] \
+  || { echo "ERROR: CDP_TAB did not override the selection (got '$ENV_TITLE')" >&2; exit 1; }
+ENV_STAR="$(CDP_TAB="$ORIG_ID" python3 browserctl.py tabs | sed -n 's/^\* \[[0-9]*\] \([0-9A-F]*\).*/\1/p')"
+[ "$ENV_STAR" = "$ORIG_ID" ] \
+  || { echo "ERROR: tabs starred '$ENV_STAR' not the CDP_TAB-driven $ORIG_ID" >&2; exit 1; }
+
+# An out-of-range number is an index error, not a one-char id prefix.
+if python3 browserctl.py --tab 5 eval 'document.title' >/dev/null 2>&1; then
+  echo 'ERROR: out-of-range numeric tab spec was accepted' >&2; exit 1
+fi
 
 # Pick the active tab by a lowercase id prefix; it must resolve to the same tab.
 NEW_ID="$(python3 browserctl.py tabs | sed -n 's/^\* \[[0-9]*\] \([0-9A-F]*\).*/\1/p')"

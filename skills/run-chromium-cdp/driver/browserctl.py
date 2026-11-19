@@ -17,8 +17,8 @@ Usage:
   browserctl.py closetab [target]    close a tab (default: the active one)
 
 A <target> is a tab index from `tabs`, an id prefix (>= 4 chars), or a
-substring of the tab's title or URL. Commands without --tab use the tab
-selected by `tab`, then $CDP_TAB, then the first page tab.
+substring of the tab's title or URL. Commands without --tab use $CDP_TAB,
+then the tab selected by `tab`, then the first page tab.
 """
 import base64, json, os, socket, struct, sys, time, urllib.error, urllib.request
 from urllib.parse import quote
@@ -85,6 +85,13 @@ def set_active_tab(tab_id):
     _save_state(state)
 
 
+def warn_env_override():
+    """Tell the user when a saved switch will not be the tab commands drive."""
+    if os.environ.get('CDP_TAB'):
+        print('note: $CDP_TAB is set and takes precedence over the saved '
+              'selection; unset it or pass --tab', file=sys.stderr)
+
+
 def find_tab(spec, tabs=None):
     """Resolve index / id prefix / title-or-URL substring to a tab."""
     tabs = page_targets() if tabs is None else tabs
@@ -98,7 +105,11 @@ def find_tab(spec, tabs=None):
         return tabs[index]
     # An id prefix can be all digits too (Chrome ids are hex), and users type
     # ids in lowercase, so match ids case-insensitively before giving up.
-    by_id = [t for t in tabs if t['id'].lower().startswith(s.lower())]
+    # Prefixes shorter than 4 chars are never ids: `tab 5` with 3 tabs is an
+    # out-of-range index, not a one-digit prefix that happens to match.
+    by_id = []
+    if len(s) >= 4:
+        by_id = [t for t in tabs if t['id'].lower().startswith(s.lower())]
     if len(by_id) > 1:
         raise SystemExit(f'tab id prefix {s!r} is ambiguous ({len(by_id)} matches)')
     if by_id:
@@ -125,13 +136,19 @@ def selected_tab(tabs=None):
 
 
 def resolve_target(spec=None):
-    """Pick the tab a normal command should drive."""
+    """Pick the tab a normal command should drive.
+
+    Explicit overrides beat the saved selection: --tab, then $CDP_TAB, then
+    the tab chosen by `tab`, then the first page tab.
+    """
     tabs = page_targets()
     if not tabs:
         raise SystemExit('no page target found')
-    spec = spec or os.environ.get('CDP_TAB') or ''
     if spec:
         return find_tab(spec, tabs)
+    env = os.environ.get('CDP_TAB') or ''
+    if env:
+        return find_tab(env, tabs)
     chosen = selected_tab(tabs)
     if chosen:
         return chosen
@@ -354,12 +371,15 @@ def print_tabs():
     if not tabs:
         print('no page tabs')
         return
-    chosen = selected_tab(tabs)
-    current = chosen['id'] if chosen else ''
+    # Star the tab a command would actually drive — same order as
+    # resolve_target — so `*` cannot point at a tab the next command ignores.
+    try:
+        current = resolve_target()['id']
+    except SystemExit as e:
+        print(f'warning: {e}', file=sys.stderr)
+        current = ''
     for i, t in enumerate(tabs):
-        # No selection (or a stale one) means commands drive the first tab.
-        is_default = t['id'] == current if current else i == 0
-        print(f"{'*' if is_default else ' '} [{i}] {t['id'][:8]}  {t.get('title') or '(untitled)'}")
+        print(f"{'*' if t['id'] == current else ' '} [{i}] {t['id'][:8]}  {t.get('title') or '(untitled)'}")
         print(f"       {t.get('url') or ''}")
 
 
@@ -397,11 +417,13 @@ def main(argv):
         tab = find_tab(args[0])
         set_active_tab(tab['id'])
         activate_tab(tab['id'])
+        warn_env_override()
         print('active tab:', tab['id'][:8], '|', tab.get('title'), '|', tab.get('url'))
         return 0
     if cmd == 'newtab':
         tab = open_tab(args[0] if args else 'about:blank')
         set_active_tab(tab['id'])
+        warn_env_override()
         print('opened tab:', tab['id'][:8], '|', tab.get('url'))
         return 0
     if cmd == 'closetab':

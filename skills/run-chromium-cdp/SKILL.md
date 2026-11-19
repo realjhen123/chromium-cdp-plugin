@@ -69,7 +69,7 @@ A `<target>` is any one of:
 - an id prefix of 4+ chars — `python3 browserctl.py tab 8A5CD587`
 - a substring of the title or URL — `python3 browserctl.py tab 上海`
 
-Commands without `--tab` drive, in order: the tab selected by `tab`, `$CDP_TAB`, then the first page tab. The selection is stored per endpoint in `${XDG_CACHE_HOME:-~/.cache}/chromium-cdp/active-tab.json`; `--tab` overrides it for a single call.
+Commands without `--tab` drive, in order: `$CDP_TAB`, the tab selected by `tab`, then the first page tab. The selection is stored per endpoint in `${XDG_CACHE_HOME:-~/.cache}/chromium-cdp/active-tab.json`; `--tab` overrides both for a single call, and `tabs` stars whichever tab a command would drive.
 
 ```bash
 python3 browserctl.py tabs                       # what's open
@@ -104,7 +104,7 @@ ssh -N -L 9222:127.0.0.1:9222 <user>@<this-host>
 ## Gotchas
 
 - **Proxies break localhost.** If `http_proxy` is set, plain `curl http://127.0.0.1:9222/json/version` returns an empty body; always add `--noproxy '*'`. `browserctl.py` bypasses the proxy with `ProxyHandler({})`.
-- **Commands drive one tab at a time.** The default is the tab chosen with `tab`, else `$CDP_TAB`, else the first `type=page` target. With several tabs open, say which one — `python3 browserctl.py tab <index|id|title>` or `--tab <target>` — or you may drive the wrong page. `newtab`/`closetab` change `/json/list` order, so re-run `tabs` before using an index.
+- **Commands drive one tab at a time.** The default is `$CDP_TAB`, else the tab chosen with `tab`, else the first `type=page` target. With several tabs open, say which one — `python3 browserctl.py tab <index|id|title>` or `--tab <target>` — or you may drive the wrong page. `newtab`/`closetab` change `/json/list` order, so re-run `tabs` before using an index.
 - **Console history is replayed by `Runtime.enable`.** Each CLI invocation drains the replay, so `console` only reports events after it connected.
 - **`type` uses `Input.insertText`** — no keydown/keypress events. Plain inputs work; keydown-driven widgets may not react.
 - **`goto` waits a fixed 1 second**, not for a load event. Slow pages can be captured half-rendered.
