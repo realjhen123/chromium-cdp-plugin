@@ -93,12 +93,12 @@ def find_tab(spec, tabs=None):
     if spec is None or spec == '':
         return tabs[0]
     s = str(spec)
-    if s.isdigit():
-        i = int(s)
-        if i < len(tabs):
-            return tabs[i]
-        raise SystemExit(f'tab index {i} out of range (0..{len(tabs) - 1})')
-    by_id = [t for t in tabs if t['id'].startswith(s)]
+    index = int(s) if s.isdigit() else None
+    if index is not None and index < len(tabs):
+        return tabs[index]
+    # An id prefix can be all digits too (Chrome ids are hex), and users type
+    # ids in lowercase, so match ids case-insensitively before giving up.
+    by_id = [t for t in tabs if t['id'].lower().startswith(s.lower())]
     if len(by_id) > 1:
         raise SystemExit(f'tab id prefix {s!r} is ambiguous ({len(by_id)} matches)')
     if by_id:
@@ -109,7 +109,19 @@ def find_tab(spec, tabs=None):
         raise SystemExit(f'tab {s!r} is ambiguous ({len(by_text)} matches)')
     if by_text:
         return by_text[0]
+    if index is not None:
+        raise SystemExit(f'tab index {index} out of range (0..{len(tabs) - 1})')
     raise SystemExit(f'no tab matching {s!r} (see `browserctl.py tabs`)')
+
+
+def selected_tab(tabs=None):
+    """The tab the persisted selection points at, or None if unset/stale."""
+    tabs = page_targets() if tabs is None else tabs
+    saved = active_tab_id()
+    for t in tabs:
+        if t['id'] == saved:
+            return t
+    return None
 
 
 def resolve_target(spec=None):
@@ -120,11 +132,10 @@ def resolve_target(spec=None):
     spec = spec or os.environ.get('CDP_TAB') or ''
     if spec:
         return find_tab(spec, tabs)
-    saved = active_tab_id()
-    if saved:
-        for t in tabs:
-            if t['id'] == saved:
-                return t
+    chosen = selected_tab(tabs)
+    if chosen:
+        return chosen
+    if active_tab_id():
         set_active_tab('')  # the browser restarted or the tab was closed
         if len(tabs) > 1:
             print(f'warning: the selected tab is gone; using the first of {len(tabs)} '
@@ -343,8 +354,10 @@ def print_tabs():
     if not tabs:
         print('no page tabs')
         return
-    current = active_tab_id()
+    chosen = selected_tab(tabs)
+    current = chosen['id'] if chosen else ''
     for i, t in enumerate(tabs):
+        # No selection (or a stale one) means commands drive the first tab.
         is_default = t['id'] == current if current else i == 0
         print(f"{'*' if is_default else ' '} [{i}] {t['id'][:8]}  {t.get('title') or '(untitled)'}")
         print(f"       {t.get('url') or ''}")

@@ -56,6 +56,15 @@ BEFORE="$(python3 browserctl.py eval 'document.title')"
 python3 browserctl.py newtab "file://$UNIT/inspect-test.html" >/dev/null
 TABS="$(python3 browserctl.py tabs | grep -c '^[ *] \[')" || true
 [ "$TABS" = "2" ] || { echo "ERROR: expected 2 tabs after newtab, got $TABS" >&2; exit 1; }
+
+# Pick the active tab by a lowercase id prefix; it must resolve to the same tab.
+NEW_ID="$(python3 browserctl.py tabs | sed -n 's/^\* \[[0-9]*\] \([0-9A-F]*\).*/\1/p')"
+LOWER_ID="$(printf %s "$NEW_ID" | tr 'A-F' 'a-f')"
+python3 browserctl.py tab "$LOWER_ID" >/dev/null
+ACTIVE_ID="$(python3 browserctl.py tabs | sed -n 's/^\* \[[0-9]*\] \([0-9A-F]*\).*/\1/p')"
+[ "$ACTIVE_ID" = "$NEW_ID" ] \
+  || { echo "ERROR: id prefix '$LOWER_ID' did not resolve to $NEW_ID (got '$ACTIVE_ID')" >&2; exit 1; }
+
 python3 browserctl.py closetab >/dev/null
 TABS="$(python3 browserctl.py tabs | grep -c '^[ *] \[')" || true
 [ "$TABS" = "1" ] || { echo "ERROR: expected 1 tab after closetab, got $TABS" >&2; exit 1; }
